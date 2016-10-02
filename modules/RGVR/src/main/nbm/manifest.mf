@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Name: Research Graph
+OpenIDE-Module-Short-Description: Control graph with Leap Motion Controller
+OpenIDE-Module-Long-Description: Use Leap Motion Controller to change layout of the graph
+OpenIDE-Module-Display-Category: Other Category
