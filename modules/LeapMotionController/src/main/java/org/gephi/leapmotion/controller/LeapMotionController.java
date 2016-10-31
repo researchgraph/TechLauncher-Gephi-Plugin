@@ -1,5 +1,6 @@
 package org.gephi.leapmotion.controller;
 
+import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.project.api.WorkspaceInformation;
 import org.gephi.project.api.WorkspaceListener;
@@ -21,9 +22,6 @@ import com.leapmotion.leap.*;
  */
 @ServiceProvider(service = WorkspaceListener.class)
 public class LeapMotionController implements WorkspaceListener {
-    LayoutController lc;
-    LayoutModel lm;
-    Layout layout;
 
     @Override
     public void initialize(Workspace wrkspc) {
@@ -31,33 +29,13 @@ public class LeapMotionController implements WorkspaceListener {
 
     @Override
     public void select(Workspace wrkspc) {
+        // connect to Leap Motion
         Controller controller = new Controller();
+        LMListener listener = new LMListener();
+        controller.addListener(listener);
 
-        String name = wrkspc.getLookup().lookup(WorkspaceInformation.class).getName();
-
-        System.out.println("Workspace '" + name + "' selected");
-
-        lm = wrkspc.getLookup().lookup(LayoutModel.class);
-        layout = lm.getSelectedLayout();
-
-        if (lm.isRunning()) {
-            lc = Lookup.getDefault().lookup(LayoutController.class);
-            System.out.println("Layout is running");
-            if (lc.canStop()) {
-                lc.stopLayout();
-                System.out.println("Layout stopped");
-            }
-        } else {
-            if (layout != null && !lm.isRunning()) {
-                lc = Lookup.getDefault().lookup(LayoutController.class);
-                lc.setLayout(layout);
-                if (lc.canExecute()) {
-                    lc.executeLayout();
-                }
-            }
-        }
-
-        System.out.println("Is layout running? " + lm.isRunning());
+        // String name = wrkspc.getLookup().lookup(WorkspaceInformation.class).getName();
+        // System.out.println("Workspace '" + name + "' selected");
     }
 
     @Override
@@ -70,5 +48,80 @@ public class LeapMotionController implements WorkspaceListener {
 
     @Override
     public void disable() {
+    }
+}
+
+class LMListener extends Listener {
+    ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
+    Workspace wrkspc = pc.getCurrentWorkspace();
+    LayoutController lc;
+    LayoutModel lm = wrkspc.getLookup().lookup(LayoutModel.class);
+    Layout layout;
+    int mark = 1, count = 0;
+
+    public void onInit(Controller controller){
+        System.out.println("Leap Motion Initialized");
+    }
+
+    public void onConnect(Controller controller){
+        System.out.println("Leap Motion Connected");
+    }
+
+    public void onDisconnect(Controller controller){
+        System.out.println("Leap Motion Disconnected");
+    }
+
+    public void onExit(Controller controller){
+        System.out.println("Leap Motion Exited");
+    }
+
+    public void onFrame(Controller controller){
+        Frame frame = controller.frame(0);
+
+        for(Hand hand: frame.hands()){
+            String handType = hand.isLeft()?"Left hand": "Right hand";
+
+            // Sphere Detection
+            //System.out.println(hand.sphereRadius());
+            if (hand.sphereRadius() < 50) {
+                layout = lm.getSelectedLayout();
+
+                if (layout != null && !lm.isRunning()) {
+                    lc = Lookup.getDefault().lookup(LayoutController.class);
+                    lc.setLayout(layout);
+                    if (lc.canExecute()) {
+                        lc.executeLayout();
+                        System.out.println("-- Layout is executed");
+                    }
+                }
+            } else if (hand.sphereRadius() > 150){
+                layout = lm.getSelectedLayout();
+
+                if (lm.isRunning()) {
+                    lc = Lookup.getDefault().lookup(LayoutController.class);
+                    System.out.println("-- Layout is running");
+                    if (lc.canStop()) {
+                        lc.stopLayout();
+                        System.out.println("-- Layout stopped");
+                    }
+                }
+            }
+
+            // Flip Detection
+            Vector normal = hand.palmNormal();
+            float status = normal.getY();
+
+            if (status * mark > 0) {
+                mark *= -1;
+                count++;
+            }
+            if (count == 2) {
+                System.out.println("Flip Detected");
+                count = 0;
+            }
+        }
+
+        GestureList gestures = frame.gestures();
+        if (gestures.count() > 0) System.out.println("Gesture Detected");
     }
 }
