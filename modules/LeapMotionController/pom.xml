@@ -40,6 +40,11 @@
             <groupId>org.gephi</groupId>
             <artifactId>layout-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.leapmotion.leap</groupId>
+            <artifactId>leapMotion</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

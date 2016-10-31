@@ -8,8 +8,14 @@ import org.gephi.layout.api.LayoutController;
 import org.gephi.layout.spi.Layout;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
+import com.leapmotion.leap.*;
 
 /**
+ * Command to install Leap Motion SDK to repo:
+ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+ -Dfile=PATH_TO_JAR \
+ -DgroupId=com.leapmotion.leap -DartifactId=leapMotion \
+ -Dversion=1.0.0 -Dpackaging=jar
  *
  * @author Hao Zhang
  */
@@ -25,6 +31,8 @@ public class LeapMotionController implements WorkspaceListener {
 
     @Override
     public void select(Workspace wrkspc) {
+        Controller controller = new Controller();
+
         String name = wrkspc.getLookup().lookup(WorkspaceInformation.class).getName();
 
         System.out.println("Workspace '" + name + "' selected");
