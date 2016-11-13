@@ -2,13 +2,14 @@ package org.gephi.leapmotion.controller;
 
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
-import org.gephi.project.api.WorkspaceInformation;
 import org.gephi.project.api.WorkspaceListener;
 import org.gephi.layout.api.LayoutModel;
 import org.gephi.layout.api.LayoutController;
 import org.gephi.layout.spi.Layout;
+import org.gephi.layout.spi.LayoutBuilder;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
+import org.gephi.layout.plugin.rotate.*;
 import com.leapmotion.leap.*;
 
 /**
@@ -118,6 +119,13 @@ class LMListener extends Listener {
             if (count == 2) {
                 System.out.println("Flip Detected");
                 count = 0;
+                Layout layout = new Rotate().buildLayout();
+                lc = Lookup.getDefault().lookup(LayoutController.class);
+                lc.setLayout(layout);
+                if (lc.canExecute()) {
+                    lc.executeLayout();
+                    System.out.println("-- Layout is executed");
+                }
             }
         }
 
